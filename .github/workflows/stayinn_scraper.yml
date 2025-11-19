@@ -36,10 +36,16 @@ jobs:
 
       - name: Run scraper (capture logs)
         run: |
-          python scraperStayinn.py > scraper.log 2>&1 || true
+          python scraperStayinn.py > scraper.log 2>&1
         env:
           MAX_PAGES: '10'
           WORKERS: '5'
+
+      - name: Ensure CSV exists (create header if missing)
+        run: |
+          if [ ! -f stayinn_listings.csv ]; then
+            echo "platform,listing_id,title,city,bedrooms,bathrooms,price_per_night_usd,rating,review_count,amenities_count,url,last_scraped" > stayinn_listings.csv
+          fi
 
       - name: Upload CSV artifact
         if: always()

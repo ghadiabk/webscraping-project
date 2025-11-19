@@ -24,12 +24,33 @@ jobs:
       - name: Install dependencies
         run: |
           if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; else python -m pip install selenium webdriver-manager pandas; fi
+      - name: Install Chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
+        env:
+          DEBIAN_FRONTEND: noninteractive
 
-      - name: Run scraper
-        run: python scraperStayinn.py
+      - name: Export CHROME_BIN
+        run: echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
+
+      - name: Run scraper (capture logs)
+        run: |
+          python scraperStayinn.py > scraper.log 2>&1 || true
+        env:
+          MAX_PAGES: '10'
+          WORKERS: '5'
+
       - name: Upload CSV artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: stayinn-listings-csv
           path: stayinn_listings.csv
+
+      - name: Upload scraper logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scraper-logs
+          path: scraper.log

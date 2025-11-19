@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+import os
 import csv
 import time
 
@@ -19,6 +20,14 @@ def get_driver():
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+
+    # If running in CI, a Chromium binary may be installed at /usr/bin/chromium-browser
+    chrome_bin = os.environ.get('CHROME_BIN') or os.environ.get('CHROME_PATH')
+    if chrome_bin:
+        try:
+            chrome_options.binary_location = chrome_bin
+        except Exception:
+            pass
 
     return webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
@@ -185,5 +194,15 @@ def save_csv(data):
     print(f"[DONE] Saved {len(data)} rows to stayinn_listings.csv")
 
 if __name__ == "__main__":
-    data = scrape_all_listings(max_pages=20, workers=5)
+    # Allow overriding from environment (useful for CI)
+    try:
+        max_pages = int(os.environ.get('MAX_PAGES', '10'))
+    except Exception:
+        max_pages = 10
+    try:
+        workers = int(os.environ.get('WORKERS', '5'))
+    except Exception:
+        workers = 5
+
+    data = scrape_all_listings(max_pages=max_pages, workers=workers)
     save_csv(data)

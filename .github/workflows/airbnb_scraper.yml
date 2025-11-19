@@ -2,8 +2,8 @@ name: Airbnb Lebanon Scraper (Daily)
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # runs every 24 hours at 00:00 UTC
-  workflow_dispatch:      # allow manual run
+    - cron: "0 0 * * *"
+  workflow_dispatch:
 
 jobs:
   scrape:
@@ -11,9 +11,8 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    # ------------ Install Chrome ------------
     - name: Install Google Chrome
       run: |
         sudo apt-get update
@@ -23,25 +22,22 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y google-chrome-stable
 
-    # ------------ Setup Python ------------
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
-    - name: Install Python dependencies
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install selenium webdriver-manager pandas
 
-    # ------------ Run Scraper ------------
     - name: Run Airbnb scraper
       run: |
         python "Course_Project/webscraping-project/airbnb_scraper.py"
 
-    # ------------ Upload CSV Output ------------
-    - name: Upload CSV artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload scraped CSV
+      uses: actions/upload-artifact@v4
       with:
         name: airbnb-lebanon-scraped
         path: Course_Project/webscraping-project/airbnb_lebanon_full.csv

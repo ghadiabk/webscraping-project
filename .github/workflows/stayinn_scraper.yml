@@ -8,6 +8,9 @@ on:
 jobs:
   run-scraper:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -28,21 +31,19 @@ jobs:
       - name: Install Chromium
         run: |
           sudo apt-get update
-          # Install the browser and its compatible driver
           sudo apt-get install -y chromium-browser chromium-chromedriver
         env:
           DEBIAN_FRONTEND: noninteractive
 
       - name: Export CHROME_ENV_VARS
         run: |
-          # Set the browser executable path
+          # The browser executable path
           echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
-          # Set the driver executable path for Selenium Service
+          # The driver executable path
           echo "CHROME_DRIVER=/usr/lib/chromium-browser/chromedriver" >> $GITHUB_ENV
 
       - name: Run scraper (capture logs)
         run: |
-          # The script should now use the CHROME_BIN and CHROME_DRIVER env vars
           python scraperStayinn.py > scraper.log 2>&1
         env:
           MAX_PAGES: '10'
@@ -67,3 +68,19 @@ jobs:
         with:
           name: scraper-logs
           path: scraper.log
+
+      - name: Commit and Push new CSV
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add stayinn_listings.csv
+          
+          # Check if there are changes to commit (prevents failure if the file content is identical)
+          if git diff --staged --quiet; then
+            echo "No changes to commit. CSV is up to date."
+          else
+            git commit -m "Data Update: Daily Stayinn scrape data"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

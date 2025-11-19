@@ -13,6 +13,20 @@ import csv
 import time
 
 BASE_URL = "https://www.stayinn.com/listing-search-results"
+FIELDNAMES = [
+    "platform",
+    "listing_id",
+    "title",
+    "city",
+    "bedrooms",
+    "bathrooms",
+    "price_per_night_usd",
+    "rating",
+    "review_count",
+    "amenities_count",
+    "url",
+    "last_scraped",
+]
 
 def get_driver():
     chrome_options = Options()
@@ -186,12 +200,24 @@ def save_csv(data):
         print("No data scraped.")
         return
 
-    with open("stayinn_listings.csv", "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=data[0].keys())
-        writer.writeheader()
-        writer.writerows(data)
+    file_path = "stayinn_listings.csv"
+    write_header = not os.path.exists(file_path)
 
-    print(f"[DONE] Saved {len(data)} rows to stayinn_listings.csv")
+    with open(file_path, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
+        if write_header:
+            writer.writeheader()
+
+        # Normalize rows to fieldnames order and provide defaults for missing keys
+        rows = []
+        for d in data:
+            row = {k: d.get(k, "") for k in FIELDNAMES}
+            rows.append(row)
+
+        writer.writerows(rows)
+
+    action = "Created" if write_header else "Appended"
+    print(f"[DONE] {action} {len(data)} rows to {file_path}")
 
 if __name__ == "__main__":
     # Allow overriding from environment (useful for CI)

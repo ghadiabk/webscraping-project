@@ -24,18 +24,25 @@ jobs:
       - name: Install dependencies
         run: |
           if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; else python -m pip install selenium webdriver-manager pandas; fi
+          
       - name: Install Chromium
         run: |
           sudo apt-get update
+          # Install the browser and its compatible driver
           sudo apt-get install -y chromium-browser chromium-chromedriver
         env:
           DEBIAN_FRONTEND: noninteractive
 
-      - name: Export CHROME_BIN
-        run: echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
+      - name: Export CHROME_ENV_VARS
+        run: |
+          # Set the browser executable path
+          echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
+          # Set the driver executable path for Selenium Service
+          echo "CHROME_DRIVER=/usr/lib/chromium-browser/chromedriver" >> $GITHUB_ENV
 
       - name: Run scraper (capture logs)
         run: |
+          # The script should now use the CHROME_BIN and CHROME_DRIVER env vars
           python scraperStayinn.py > scraper.log 2>&1
         env:
           MAX_PAGES: '10'

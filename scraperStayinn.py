@@ -35,7 +35,6 @@ def get_driver():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    # If running in CI, a Chromium binary may be installed at /usr/bin/chromium-browser
     chrome_bin = os.environ.get('CHROME_BIN') or os.environ.get('CHROME_PATH')
     if chrome_bin:
         try:
@@ -43,6 +42,12 @@ def get_driver():
         except Exception:
             pass
 
+    chrome_driver_path = os.environ.get('CHROME_DRIVER')
+    if chrome_driver_path:
+        return webdriver.Chrome(
+            service=Service(executable_path=chrome_driver_path),
+            options=chrome_options
+        )
     return webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
         options=chrome_options

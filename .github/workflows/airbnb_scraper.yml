@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install Google Chrome
       run: |
@@ -35,6 +37,15 @@ jobs:
     - name: Run Airbnb scraper
       run: |
         python "airbnb_scraper.py"
+
+  
+    - name: Commit updated CSV
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add airbnb_lebanon_full.csv
+        git commit -m "Daily scrape update" || echo "No changes to commit"
+        git push
 
     - name: Upload scraped CSV
       uses: actions/upload-artifact@v4

@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 import requests
 from lxml import html
 
+
 BASE_URL = "https://lebanon-rental.com/properties-for-rent/"
 
 # ✅ Custom User-Agent (as your doctor asked)

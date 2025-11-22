@@ -1,0 +1,74 @@
+name: Daily Lebanon Rental Scrape
+
+on:
+  schedule:
+    # Run once per day at 03:00 UTC (change time if you want)
+    - cron: '0 3 * * *'
+  workflow_dispatch: {}   # allow manual run from Actions tab
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          else
+            python -m pip install requests lxml pandas
+          fi
+
+      - name: Run Lebanon Rental scraper (capture logs)
+        run: |
+          python lebanon_rental.py > lebanon_rental.log 2>&1
+
+      - name: Ensure CSV exists (create header if missing)
+        run: |
+          if [ ! -f lebanon_rental_raw.csv ]; then
+            echo "platform,listing_id,title,city,bedrooms,bathrooms,beds,price,price_per_night_usd,rating,review_count,amenities_count,minimum_nights,url,last_scraped" > lebanon_rental_raw.csv
+          fi
+
+      - name: Upload CSV artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lebanon-rental-csv
+          path: lebanon_rental_raw.csv
+
+      - name: Upload scraper logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lebanon-rental-logs
+          path: lebanon_rental.log
+
+      - name: Commit and Push new CSV
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add lebanon_rental_raw.csv
+
+          # Only commit if there are real changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit. CSV is up to date."
+          else
+            git commit -m "Data Update: Daily Lebanon Rental scrape data"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

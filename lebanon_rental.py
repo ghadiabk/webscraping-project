@@ -2,7 +2,7 @@ import csv
 import time
 import re
 from datetime import datetime
-from urllib.parse impo 53t5ertrt urlparse
+from urllib.parse import urlparse
 
 import requests
 from lxml import html

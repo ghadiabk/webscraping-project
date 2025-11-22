@@ -2,7 +2,7 @@ name: Daily Lebanon Rental Scrape
 
 on:
   schedule:
-    # Run once per day at 03:00 UTC (change time if you want)
+    # Run once per day at 03:00 UTC
     - cron: '0 3 * * *'
   workflow_dispatch: {}   # allow manual run from Actions tab
 
@@ -33,9 +33,9 @@ jobs:
             python -m pip install requests lxml pandas
           fi
 
-      - name: Run Lebanon Rental scraper (capture logs)
+      - name: Run Lebanon Rental scraper (log + console)
         run: |
-          python lebanon_rental.py > lebanon_rental.log 2>&1
+          python lebanon_rental.py 2>&1 | tee lebanon_rental.log
 
       - name: Ensure CSV exists (create header if missing)
         run: |

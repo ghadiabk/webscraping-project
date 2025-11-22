@@ -111,7 +111,11 @@ def parse_card(card) -> dict:
         './/ul[contains(@class,"item-price-wrap")]'
         '//li[contains(@class,"item-price")]//text()'
     )
-    raw_price = " ".join(p.strip() for p in price_nodes if p.strip()) if price_nodes else None
+    raw_price = (
+        " ".join(p.strip() for p in price_nodes if p.strip())
+        if price_nodes
+        else None
+    )
     price_per_night_usd = parse_price_to_usd(raw_price)
 
     # Amenities line in header (Bed, Bath icons)

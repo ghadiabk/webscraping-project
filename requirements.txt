@@ -4,4 +4,5 @@ pandas
 requests
 lxml
 plotly-express
+sklearn
 
